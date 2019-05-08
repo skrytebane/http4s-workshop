@@ -37,10 +37,13 @@ object MissileLaunchController extends MissileServiceCodec {
     result.value.flatMap {
       case Right(content) => Response[IO](status = Ok).withBody(content.asJson)
 
-        // MissileNotFound must return 404
-        // MissileNotInMaintenance must return MethodNotAllowed (405)
-        // MissileNotInMaintenance must return MethodNotAllowed (405)
-      case _ => ???
+      case Left(e) =>
+        e match {
+          case MissileNotFound(_) => NotFound(notFoundError)
+          case MissileNotArmed(missileId) => MethodNotAllowed(missileId.asJson)
+          case MissileNotInMaintenance(missileId) => MethodNotAllowed(missileId.asJson)
+        }
+
     }
   }
 }
